@@ -21,6 +21,9 @@ const DieFace = ({
         maxWidth={maxWidth}
         textAlign="center"
         lineHeight={1.2}
+        letterSpacing={-0.02}
+        outlineWidth={0.01}
+        outlineColor="#666666"
       >
         {text}
       </Text>

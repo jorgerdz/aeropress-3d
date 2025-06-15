@@ -1,5 +1,6 @@
 import { RigidBody } from '@react-three/rapier';
 import { forwardRef } from 'react';
+import { RoundedBox } from '@react-three/drei';
 import DieFace from './DieFace';
 import { DieType, DieProps } from './types';
 
@@ -83,10 +84,19 @@ const Die = forwardRef<any, DieProps>(({
       ref={ref}
     >
       <group>
-        <mesh>
-          <boxGeometry args={[1, 1, 1]} />
-          <meshStandardMaterial color="#ffffff" />
-        </mesh>
+        <RoundedBox 
+          args={[1, 1, 1]} 
+          radius={0.1} 
+          smoothness={4}
+          castShadow 
+          receiveShadow
+        >
+          <meshStandardMaterial 
+            color="#f8f8f8" 
+            roughness={0.3}
+            metalness={0.1}
+          />
+        </RoundedBox>
         {/* Front face */}
         <DieFace 
           position={[0, 0, 0.5]} 
