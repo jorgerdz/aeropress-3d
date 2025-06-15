@@ -53,6 +53,18 @@ const Floor: React.FC = () => {
 
 const diceTypes: readonly DieType[] = ['grind', 'ratio', 'method', 'agitation', 'temperature'] as const;
 
+// Stylish die colors for each type
+const getDieColor = (index: number): string => {
+  const colors = [
+    '#FF6B6B', // Coral red for grind
+    '#4ECDC4', // Teal for ratio
+    '#45B7D1', // Sky blue for method
+    '#96CEB4', // Mint green for agitation
+    '#FFEAA7', // Warm yellow for temperature
+  ];
+  return colors[index] || '#f8f8f8';
+};
+
 const getRandomInRange = (min: number, max: number): number => {
   return Math.random() * (max - min) + min;
 };
@@ -458,6 +470,7 @@ const DiceScene: React.FC = () => {
             dieType={diceTypes[index]}
             initialVelocity={diceVelocities[index]}
             initialAngularVelocity={diceAngularVelocities[index]}
+            dieColor={getDieColor(index)}
             ref={(ref) => { 
               if (ref) {
                 diceRefs.current[index] = ref;

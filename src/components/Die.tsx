@@ -60,6 +60,7 @@ const Die = forwardRef<any, DieProps>(({
   dieType,
   initialVelocity,
   initialAngularVelocity,
+  dieColor = "#f8f8f8",
   faceConfig = {
     fontSize: 0.15,
     color: "black",
@@ -92,7 +93,7 @@ const Die = forwardRef<any, DieProps>(({
           receiveShadow
         >
           <meshStandardMaterial 
-            color="#f8f8f8" 
+            color={dieColor} 
             roughness={0.3}
             metalness={0.1}
           />

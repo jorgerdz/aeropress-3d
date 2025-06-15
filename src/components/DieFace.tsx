@@ -22,8 +22,8 @@ const DieFace = ({
         textAlign="center"
         lineHeight={1.2}
         letterSpacing={-0.02}
-        outlineWidth={0.01}
-        outlineColor="#666666"
+        outlineWidth={0}
+        outlineColor="transparent"
       >
         {text}
       </Text>

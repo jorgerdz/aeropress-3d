@@ -14,6 +14,7 @@ export interface DieProps {
   faceConfig?: FaceConfig;
   initialVelocity?: [number, number, number];
   initialAngularVelocity?: [number, number, number];
+  dieColor?: string;
 }
 
 export interface DieFaceProps {
