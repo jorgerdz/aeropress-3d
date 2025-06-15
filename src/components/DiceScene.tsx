@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Text, Html } from '@react-three/drei';
 import { Physics, RigidBody } from '@react-three/rapier';
 import Die from './Die';
 import BrewResults from './BrewResults';
+import InitialOverlay from './InitialOverlay';
 import { DieType } from './types';
 
 type Position = [number, number, number];
@@ -69,9 +69,11 @@ const getRandomInRange = (min: number, max: number): number => {
   return Math.random() * (max - min) + min;
 };
 
+
 const DiceScene: React.FC = () => {
   const [diceEnabled, setDiceEnabled] = useState<number[]>([]);
   const [showDice, setShowDice] = useState<boolean>(false);
+  const [showInitialOverlay, setShowInitialOverlay] = useState<boolean>(true);
   const [diceVelocities, setDiceVelocities] = useState<Velocity[]>([]);
   const [diceAngularVelocities, setDiceAngularVelocities] = useState<Velocity[]>([]);
   const [isGathering, setIsGathering] = useState<boolean>(false);
@@ -413,6 +415,9 @@ const DiceScene: React.FC = () => {
   };
 
   const rollDice = (): void => {
+    // Hide the initial overlay
+    setShowInitialOverlay(false);
+    
     // Reset camera to original position
     if (cameraRef.current) {
       cameraRef.current.position.set(15, 15, 15);
@@ -457,7 +462,10 @@ const DiceScene: React.FC = () => {
         diceResults={diceResults}
         diceTypes={diceTypes}
         visible={showBrewResults}
-        onReroll={rollDice}
+        onReroll={() => {
+          setShowInitialOverlay(true);
+          rollDice();
+        }}
         onShare={handleShare}
       />
     <Canvas 
@@ -503,6 +511,8 @@ const DiceScene: React.FC = () => {
           />
         ))}
       </Physics>
+
+      {showInitialOverlay && <InitialOverlay onBrew={rollDice} />}
 
     </Canvas>
     </>
