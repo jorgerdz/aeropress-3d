@@ -10,42 +10,42 @@ type Position = [number, number, number];
 type Velocity = [number, number, number];
 
 const Floor: React.FC = () => {
-  // Calculate viewport-based dimensions
-  const viewportWidth = 20; // Width that covers dice area
-  const viewportHeight = 20; // Height that covers dice area
-  const wallHeight = 40; // Tall walls to ensure dice don't escape
-  const wallDepth = 10; // Distance from camera for back wall
+  // Dice rolling tray dimensions - sized to fill entire viewport
+  // Camera at [10,10,10] distance ≈17.3, FOV 50° sees ≈16 units at origin
+  const trayWidth = 16;  // X dimension (-8 to +8) - fills viewport width
+  const trayDepth = 16;  // Z dimension (-8 to +8) - fills viewport depth
+  const wallHeight = 12; // High enough to contain dice bouncing
   
   return (
     <RigidBody type="fixed">
-      {/* Floor */}
-      <mesh rotation-x={-Math.PI / 2} receiveShadow>
-        <planeGeometry args={[viewportWidth, wallDepth * 2]} />
-        <meshStandardMaterial color="#303030" />
+      {/* Floor - infinite plane to catch all dice */}
+      <mesh position={[0, 0, 0]} rotation-x={-Math.PI / 2} receiveShadow>
+        <planeGeometry args={[1000, 1000]} />
+        <meshStandardMaterial color="#2a2a2a" />
       </mesh>
 
-      {/* Back wall */}
-      <mesh position={[0, viewportHeight/2, -wallDepth]}>
-        <planeGeometry args={[viewportWidth, wallHeight]} />
-        <meshStandardMaterial color="#303030" />
+      {/* Front wall - invisible barrier to contain dice */}
+      <mesh position={[0, wallHeight/2, trayDepth/2]}>
+        <planeGeometry args={[trayWidth, wallHeight]} />
+        <meshStandardMaterial visible={false} />
       </mesh>
 
-      {/* Left wall at viewport edge */}
-      <mesh position={[-viewportWidth/2, viewportHeight/2, 0]} rotation-y={Math.PI / 2}>
-        <planeGeometry args={[wallDepth * 2, wallHeight]} />
-        <meshStandardMaterial color="#303030" />
+      {/* Back wall - prevents dice rolling away from camera */}
+      <mesh position={[0, wallHeight/2, -trayDepth/2]}>
+        <planeGeometry args={[trayWidth, wallHeight]} />
+        <meshStandardMaterial color="#1a1a1a" />
       </mesh>
 
-      {/* Right wall at viewport edge */}
-      <mesh position={[viewportWidth/2, viewportHeight/2, 0]} rotation-y={-Math.PI / 2}>
-        <planeGeometry args={[wallDepth * 2, wallHeight]} />
-        <meshStandardMaterial color="#303030" />
+      {/* Left wall */}
+      <mesh position={[-trayWidth/2, wallHeight/2, 0]} rotation-y={Math.PI / 2}>
+        <planeGeometry args={[trayDepth, wallHeight]} />
+        <meshStandardMaterial color="#1a1a1a" />
       </mesh>
 
-      {/* Top wall (ceiling) */}
-      <mesh position={[0, viewportHeight, 0]} rotation-x={Math.PI / 2}>
-        <planeGeometry args={[viewportWidth, wallDepth * 2]} />
-        <meshStandardMaterial color="#303030" />
+      {/* Right wall */}
+      <mesh position={[trayWidth/2, wallHeight/2, 0]} rotation-y={-Math.PI / 2}>
+        <planeGeometry args={[trayDepth, wallHeight]} />
+        <meshStandardMaterial color="#1a1a1a" />
       </mesh>
     </RigidBody>
   );
@@ -129,13 +129,13 @@ const DiceScene: React.FC = () => {
     return topFaceIndex;
   };
 
-  // Initial positions spread higher in the sky
+  // Initial positions spread higher in the sky - spread across larger tray
   const diceStartPositions: Position[] = [
-    [-2, 20, -2],
-    [-1, 20, 1],
+    [-4, 20, -4],
+    [-2, 20, 2],
     [0, 20, 0],
-    [1, 20, -1],
-    [2, 20, 2],
+    [2, 20, -2],
+    [4, 20, 4],
   ];
 
   const finalPositions: Position[] = [
@@ -393,9 +393,9 @@ const DiceScene: React.FC = () => {
 
   const generateRandomVelocities = () => {
     const velocities: Velocity[] = diceStartPositions.map(() => [
-      getRandomInRange(-8, 8),    // x velocity
-      getRandomInRange(-2, 2),    // y velocity
-      getRandomInRange(-8, 8),    // z velocity
+      getRandomInRange(-3, 3),    // x velocity - keeps dice within tray bounds (±4 start + ±3 vel = ±7 max)
+      getRandomInRange(-2, 2),    // y velocity - some bounce for realism
+      getRandomInRange(-3, 3),    // z velocity - keeps dice within tray bounds (±4 start + ±3 vel = ±7 max)
     ]);
 
     const angularVelocities: Velocity[] = diceStartPositions.map(() => [
@@ -409,6 +409,13 @@ const DiceScene: React.FC = () => {
   };
 
   const rollDice = (): void => {
+    // Reset camera to original position
+    if (cameraRef.current) {
+      cameraRef.current.position.set(15, 15, 15);
+      cameraRef.current.lookAt(0, 0, 0);
+      cameraRef.current.updateProjectionMatrix();
+    }
+    
     // Reset all refs to ensure clean state
     diceRefs.current = Array(5).fill(null);
     setRefsAssigned([]);
@@ -450,7 +457,7 @@ const DiceScene: React.FC = () => {
         onShare={handleShare}
       />
     <Canvas 
-      camera={{ position: [10, 10, 10], fov: 50 }} 
+      camera={{ position: [15, 15, 15], fov: 50 }} 
       onClick={handleSceneClick}
       onCreated={({ camera }) => {
         cameraRef.current = camera;
