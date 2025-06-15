@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Physics, RigidBody } from '@react-three/rapier';
+import { Html } from '@react-three/drei';
 import Die from './Die';
-import BrewResults from './BrewResults';
+import DieBubble, { dieInstructions, dieLabels } from './DieBubble';
 import InitialOverlay from './InitialOverlay';
 import { DieType } from './types';
 
@@ -82,6 +83,7 @@ const DiceScene: React.FC = () => {
   const [diceResults, setDiceResults] = useState<number[]>([]);
   const [cameraFocusing, setCameraFocusing] = useState<boolean>(false);
   const [showBrewResults, setShowBrewResults] = useState<boolean>(false);
+  const [showInstructionsFor, setShowInstructionsFor] = useState<DieType | null>(null);
   const cameraRef = useRef<any>(null);
   const [refsAssigned, setRefsAssigned] = useState<number[]>([]);
 
@@ -141,12 +143,13 @@ const DiceScene: React.FC = () => {
   ];
 
   const finalPositions: Position[] = [
-    [0, 4.5, 0],    // Top die
-    [0, 3.5, 0],    // Second from top
-    [0, 2.5, 0],    // Center die
-    [0, 1.5, 0],    // Second from bottom
-    [0, 0.5, 0],    // Bottom die
+    [0, 5, 0],    // Top die
+    [0, 4, 0],    // Second from top
+    [0, 3, 0],    // Center die
+    [0, 1.9, 0],    // Second from bottom
+    [0, 0.8, 0],    // Bottom die
   ];
+
 
   // Check if dice have settled
   useEffect(() => {
@@ -343,7 +346,7 @@ const DiceScene: React.FC = () => {
           });
           
           setIsGathering(false);
-          // Show results first to resize canvas, then focus camera
+          // Show 3D bubbles instead of 2D sidebar
           setShowBrewResults(true);
         }
       };
@@ -359,9 +362,9 @@ const DiceScene: React.FC = () => {
     const camera = cameraRef.current;
     const startPosition = { ...camera.position };
     
-    // Target camera position to view the vertical column of dice
-    const targetPosition = { x: 0, y: 2.5, z: 8 };
-    const targetLookAt = { x: 0, y: 2.5, z: 0 };
+    // Target camera position to view both dice and bubbles
+    const targetPosition = { x: 2, y: 2.5, z: 8 };
+    const targetLookAt = { x: 2, y: 2.5, z: 0 };
 
     let frame = 0;
     const duration = 120;
@@ -394,7 +397,7 @@ const DiceScene: React.FC = () => {
       };
 
       animateCamera();
-    }, 600); // Wait for UI slide-in animation to complete
+    }, 600); // Wait for bubble animation to complete
   }, [showBrewResults]);
 
   const generateRandomVelocities = () => {
@@ -458,29 +461,93 @@ const DiceScene: React.FC = () => {
 
   return (
     <>
-      <BrewResults
-        diceResults={diceResults}
-        diceTypes={diceTypes}
-        visible={showBrewResults}
-        onReroll={() => {
-          setShowInitialOverlay(true);
-          rollDice();
+      {/* Instructions Modal */}
+      {showInstructionsFor && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          zIndex: 10000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
         }}
-        onShare={handleShare}
-      />
-    <Canvas 
-      camera={{ position: [15, 15, 15], fov: 50 }} 
-      onClick={handleSceneClick}
-      onCreated={({ camera }) => {
-        cameraRef.current = camera;
-        camera.lookAt(0, 0, 0);
-      }}
-      style={{
-        width: showBrewResults ? 'calc(100vw - 400px)' : '100vw',
-        transition: 'width 0.5s ease-in-out',
-        zIndex: 1
-      }}
-    >
+        onClick={() => setShowInstructionsFor(null)}
+        >
+          <div style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.95)',
+            border: `2px solid ${getDieColor(diceTypes.indexOf(showInstructionsFor))}`,
+            borderRadius: '12px',
+            padding: '24px',
+            maxWidth: '500px',
+            maxHeight: '80vh',
+            overflowY: 'auto',
+            position: 'relative'
+          }}
+          onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px'
+            }}>
+              <h2 style={{
+                margin: 0,
+                color: getDieColor(diceTypes.indexOf(showInstructionsFor)),
+                fontSize: '18px',
+                fontWeight: '600'
+              }}>
+                How to use: {dieLabels[showInstructionsFor]}
+              </h2>
+              <button
+                onClick={() => setShowInstructionsFor(null)}
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  backgroundColor: 'transparent',
+                  color: '#ffffff',
+                  border: '1px solid #666',
+                  fontSize: '16px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{
+              color: '#e0e0e0',
+              fontSize: '14px',
+              lineHeight: '1.5',
+              whiteSpace: 'pre-line'
+            }}>
+              {dieInstructions[showInstructionsFor]}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Canvas 
+        camera={{ position: [15, 15, 15], fov: 50 }} 
+        onClick={handleSceneClick}
+        onCreated={({ camera }) => {
+          cameraRef.current = camera;
+          camera.lookAt(0, 0, 0);
+        }}
+        style={{
+          width: '100vw',
+          height: '100vh',
+          zIndex: 1
+        }}
+      >
       <ambientLight intensity={0.5} />
       <directionalLight position={[10, 10, 5]} intensity={1} />
       <Physics>
@@ -510,6 +577,55 @@ const DiceScene: React.FC = () => {
             }}
           />
         ))}
+
+        {/* 3D Bubble overlays for each die result */}
+        {showBrewResults && diceResults.length > 0 && diceTypes.map((dieType, index) => (
+          <DieBubble
+            key={`bubble-${index}`}
+            position={[finalPositions[index][0] + 1.5, finalPositions[index][1], finalPositions[index][2]]}
+            dieType={dieType}
+            faceIndex={diceResults[index] || 0}
+            dieColor={getDieColor(index)}
+            visible={showBrewResults}
+            onShowInstructions={setShowInstructionsFor}
+          />
+        ))}
+
+        {/* Reroll button positioned below the text boxes */}
+        {showBrewResults && (
+          <Html
+            position={[1.5, -0.5, 0]}
+            center
+            distanceFactor={8}
+            style={{
+              pointerEvents: 'auto'
+            }}
+          >
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowInitialOverlay(true);
+                rollDice();
+              }}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: '#007bff',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s',
+                boxShadow: '0 4px 12px rgba(0, 123, 255, 0.3)'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#007bff'}
+            >
+              Roll Again
+            </button>
+          </Html>
+        )}
       </Physics>
 
       {showInitialOverlay && <InitialOverlay onBrew={rollDice} />}
