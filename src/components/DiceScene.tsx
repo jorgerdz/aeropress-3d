@@ -11,7 +11,7 @@ type Velocity = [number, number, number];
 
 const Floor: React.FC = () => {
   // Calculate viewport-based dimensions
-  const viewportWidth = 20; // Width that covers dice area with some margin
+  const viewportWidth = 20; // Width that covers dice area
   const viewportHeight = 20; // Height that covers dice area
   const wallHeight = 40; // Tall walls to ensure dice don't escape
   const wallDepth = 10; // Distance from camera for back wall
@@ -69,7 +69,6 @@ const DiceScene: React.FC = () => {
   const [cameraFocusing, setCameraFocusing] = useState<boolean>(false);
   const [showBrewResults, setShowBrewResults] = useState<boolean>(false);
   const cameraRef = useRef<any>(null);
-  const controlsRef = useRef<any>(null);
   const [refsAssigned, setRefsAssigned] = useState<number[]>([]);
 
   // Function to detect which face is up based on die rotation
@@ -163,12 +162,12 @@ const DiceScene: React.FC = () => {
           
           // Check if the die is still moving significantly
           if (
-            Math.abs(linVel.x) > 0.5 || 
-            Math.abs(linVel.y) > 0.5 || 
-            Math.abs(linVel.z) > 0.5 ||
-            Math.abs(angVel.x) > 0.5 || 
-            Math.abs(angVel.y) > 0.5 || 
-            Math.abs(angVel.z) > 0.5
+            Math.abs(linVel.x) > 0.1 || 
+            Math.abs(linVel.y) > 0.1 || 
+            Math.abs(linVel.z) > 0.1 ||
+            Math.abs(angVel.x) > 0.1 || 
+            Math.abs(angVel.y) > 0.1 || 
+            Math.abs(angVel.z) > 0.1
           ) {
             allSettled = false;
             break;
@@ -194,17 +193,15 @@ const DiceScene: React.FC = () => {
             
           // Start gathering animation after a short delay
           setTimeout(() => {
-              console.log('Starting gathering animation, dice results:', results);
               setIsGathering(true);
-          }, 1500);
+          }, 500);
         }
-      }, 500);
+      }, 200);
 
       return () => {
-        console.log('Cleaning up settling check interval');
         clearInterval(checkInterval);
       };
-    }, 500); // Increased delay to ensure physics is ready
+    }, 100); // Small delay to ensure physics is ready
     
     return () => {
       clearTimeout(timeoutId);
@@ -224,11 +221,7 @@ const DiceScene: React.FC = () => {
       }
     });
     
-    console.log('Gathering animation started. Missing refs:', missingRefs);
-    console.log('Dice refs status:', diceRefs.current.map(r => r ? 'present' : 'missing'));
-    
     if (missingRefs.length > 0) {
-      console.log('Missing refs detected, retrying...');
       // Retry after a short delay
       setTimeout(() => {
         setIsGathering(false);
@@ -375,7 +368,7 @@ const DiceScene: React.FC = () => {
       camera.position.y = startPosition.y + (targetPosition.y - startPosition.y) * easedProgress;
       camera.position.z = startPosition.z + (targetPosition.z - startPosition.z) * easedProgress;
 
-      // Look at the target
+      // Look at the target  
       camera.lookAt(targetLookAt.x, targetLookAt.y, targetLookAt.z);
       camera.updateProjectionMatrix();
 
