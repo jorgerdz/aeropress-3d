@@ -88,19 +88,21 @@ const BrewResults: React.FC<BrewResultsProps> = ({
         right: fadeIn ? 0 : '-400px',
         width: '400px',
         height: '100vh',
-        backgroundColor: 'white',
+        backgroundColor: '#1a1a1a',
         zIndex: 1000,
         transition: 'right 0.5s ease-in-out',
-        boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.2)',
+        boxShadow: 'none',
         padding: '24px',
         overflowY: 'auto',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        pointerEvents: 'auto'
       }}
+      onClick={(e) => e.stopPropagation()}
     >
       <h1 style={{ 
         textAlign: 'center', 
         marginBottom: '20px',
-        color: '#333',
+        color: '#ffffff',
         fontSize: '24px',
         fontWeight: 'bold'
       }}>
@@ -118,14 +120,14 @@ const BrewResults: React.FC<BrewResultsProps> = ({
               style={{
                 marginBottom: '16px',
                 padding: '12px',
-                backgroundColor: '#f8f9fa',
+                backgroundColor: '#2a2a2a',
                 borderRadius: '6px',
-                border: '1px solid #e9ecef'
+                border: '1px solid #404040'
               }}
             >
               <h3 style={{ 
                 margin: '0 0 6px 0',
-                color: '#495057',
+                color: '#e0e0e0',
                 fontSize: '16px',
                 fontWeight: '600'
               }}>
@@ -133,7 +135,7 @@ const BrewResults: React.FC<BrewResultsProps> = ({
               </h3>
               <p style={{ 
                 margin: 0,
-                color: '#212529',
+                color: '#ffffff',
                 fontSize: '14px',
                 lineHeight: '1.3',
                 whiteSpace: 'pre-line'

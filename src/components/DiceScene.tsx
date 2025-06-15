@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Plane } from '@react-three/drei';
+import { Text, Html } from '@react-three/drei';
 import { Physics, RigidBody } from '@react-three/rapier';
 import Die from './Die';
 import BrewResults from './BrewResults';
@@ -341,7 +341,8 @@ const DiceScene: React.FC = () => {
           });
           
           setIsGathering(false);
-          setCameraFocusing(true);
+          // Show results first to resize canvas, then focus camera
+          setShowBrewResults(true);
         }
       };
 
@@ -349,9 +350,9 @@ const DiceScene: React.FC = () => {
     });
   }, [isGathering, diceResults]);
 
-  // Handle camera focusing animation
+  // Handle camera focusing animation - triggered after UI shows
   useEffect(() => {
-    if (!cameraFocusing || !cameraRef.current) return;
+    if (!showBrewResults || !cameraRef.current || cameraFocusing) return;
 
     const camera = cameraRef.current;
     const startPosition = { ...camera.position };
@@ -364,13 +365,15 @@ const DiceScene: React.FC = () => {
     const duration = 120;
     const easing = (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 
-    const animateCamera = () => {
-      if (frame >= duration) {
-        setCameraFocusing(false);
-        // Show brew results after camera focusing completes
-        setTimeout(() => setShowBrewResults(true), 500);
-        return;
-      }
+    setCameraFocusing(true);
+    
+    // Wait for canvas resize to complete before starting camera animation
+    setTimeout(() => {
+      const animateCamera = () => {
+        if (frame >= duration) {
+          setCameraFocusing(false);
+          return;
+        }
 
       const progress = frame / duration;
       const easedProgress = easing(progress);
@@ -384,12 +387,13 @@ const DiceScene: React.FC = () => {
       camera.lookAt(targetLookAt.x, targetLookAt.y, targetLookAt.z);
       camera.updateProjectionMatrix();
 
-      frame++;
-      requestAnimationFrame(animateCamera);
-    };
+        frame++;
+        requestAnimationFrame(animateCamera);
+      };
 
-    animateCamera();
-  }, [cameraFocusing]);
+      animateCamera();
+    }, 600); // Wait for UI slide-in animation to complete
+  }, [showBrewResults]);
 
   const generateRandomVelocities = () => {
     const velocities: Velocity[] = diceStartPositions.map(() => [
@@ -462,6 +466,11 @@ const DiceScene: React.FC = () => {
       onCreated={({ camera }) => {
         cameraRef.current = camera;
         camera.lookAt(0, 0, 0);
+      }}
+      style={{
+        width: showBrewResults ? 'calc(100vw - 400px)' : '100vw',
+        transition: 'width 0.5s ease-in-out',
+        zIndex: 1
       }}
     >
       <ambientLight intensity={0.5} />

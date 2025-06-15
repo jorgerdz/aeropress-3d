@@ -39,7 +39,7 @@ const dieContent: Record<DieType, string[]> = {
   agitation: [
     'No Stir',
     'Stir before\npressing (x2)',
-    'Stir clockwise once,\nStir counter-clockwise\nonce before pressing',
+    'Stir clockwise,\nStir counter-clockwise\n',
     'Stir before\npressing (x1)',
     'Stir before pressing\n(North, South,\nEast, West)',
     'Your Choice'
@@ -77,8 +77,11 @@ const Die = forwardRef<any, DieProps>(({
   return (
     <RigidBody 
       position={position} 
-      restitution={0.7} 
-      friction={0.2}
+      restitution={0.15} 
+      friction={0.8}
+      // mass={10}
+      // linearDamping={2.0}
+      // angularDamping={2.0}
       linearVelocity={initialVelocity}
       angularVelocity={initialAngularVelocity}
       colliders="cuboid"
